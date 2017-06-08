@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-rich-notifications" version="1.0.0">
+  <name>Cordova Plugin Rich Notifications</name>
+  <description></description>
+  <license>MIT</license>
+  <keywords></keywords>
+
+  <!-- android -->
+  <platform name="android">
+    <js-module src="www/plugin.js" name="plugin">
+      <runs/>
+
+      <!-- This is the window variable name you want, like window.MyCordovaPlugin -->
+      <clobbers target="CordovaPluginRichNotifications" />
+    </js-module>
+    <config-file target="res/xml/config.xml" parent="/*">
+      <feature name="CordovaPluginRichNotifications">
+        <param name="android-package" value="com.mif.CordovaPluginRichNotifications" />
+        <param name="onload" value="true" />
+      </feature>
+    </config-file>
+
+    <source-file src="src/android/com/mif/CordovaPluginRichNotifications.java" target-dir="src/com/mif/" />
+  </platform>
+
+  <!-- ios -->
+  <platform name="ios">
+    <js-module src="www/plugin.js" name="plugin">
+      <runs/>
+      <clobbers target="CordovaPluginRichNotifications" />
+    </js-module>
+    <config-file target="config.xml" parent="/*">
+      <feature name="CordovaPluginRichNotifications">
+        <param name="ios-package" value="CordovaPluginRichNotifications" onload="true" />
+      </feature>
+    </config-file>
+
+    <source-file src="src/ios/CordovaPluginRichNotifications.swift" />
+  </platform>
+</plugin>
