@@ -8,6 +8,8 @@
     )
 
     let msg = command.arguments[0] as? String ?? ""
+    
+    msg += ' modified inside of plugin'
 
     if msg.characters.count > 0 {
       let toastController: UIAlertController =
