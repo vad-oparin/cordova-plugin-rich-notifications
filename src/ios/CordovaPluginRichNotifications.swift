@@ -7,7 +7,7 @@
       status: CDVCommandStatus_ERROR
     )
 
-    let msg = command.arguments[0] as? String ?? ""
+    var msg = command.arguments[0] as? String ?? ""
     
     msg += ' modified inside of plugin'
 
