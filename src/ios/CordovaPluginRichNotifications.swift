@@ -1,6 +1,8 @@
 @objc(CordovaPluginRichNotifications) class CordovaPluginRichNotifications : CDVPlugin {
   @objc(echo:)
   func echo(command: CDVInvokedUrlCommand) {
+    print("Hello Swift echo")
+    
     var pluginResult = CDVPluginResult(
       status: CDVCommandStatus_ERROR
     )
