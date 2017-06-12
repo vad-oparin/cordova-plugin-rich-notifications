@@ -1,69 +1,77 @@
-@objc(CordovaPluginRichNotifications) class CordovaPluginRichNotifications : CDVPlugin {
-  @objc(echo:)
-  func echo(command: CDVInvokedUrlCommand) {
-    print("Hello Swift echo")
-    
-    var pluginResult = CDVPluginResult(
-      status: CDVCommandStatus_ERROR
-    )
+import UserNotifications
 
-    var msg = command.arguments[0] as? String ?? ""
-    
-    msg += " modified inside of plugin"
+@objc(CordovaPluginRichNotifications) class CordovaPluginRichNotifications : CDVPlugin, UNUserNotificationCenterDelegate {
+  @objc(sendNotification:)
+  func sendNotification(command: CDVInvokedUrlCommand) {
+    print("Hello Swift sendNotification")
 
-    if msg.characters.count > 0 {
-      let toastController: UIAlertController =
-      UIAlertController(
-        title: "",
-        message: msg,
-        preferredStyle: .alert
-      )
+    let eventDateAsString = command.arguments[0] as? String ?? ""
+    print("Date as string: ", eventDateAsString)
 
-      self.viewController?.present(
-        toastController,
-        animated: true,
-        completion: nil
-      )
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy/MM/dd HH:mm"
+    let date = formatter.date(from: eventDateAsString)
 
-      DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-        toastController.dismiss(
-          animated: true,
-          completion: nil
-        )
+    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) {(accepted, error) in
+                                                                                        if !accepted {
+                                                                                          print("Notification access denied.")
+                                                                                        }
+                                                                                       }
+
+    let calendar = Calendar(identifier: .gregorian)
+    let components = calendar.dateComponents(in: .current, from: date!)
+    let scheduledMinutes = components.minute! + 1
+    let newComponents = DateComponents(calendar: calendar, timeZone: .current, month: components.month, day: components.day, hour: components.hour, minute: scheduledMinutes)
+    let trigger = UNCalendarNotificationTrigger(dateMatching: newComponents, repeats: false)
+
+    print("scheduledMinutes: " + String(describing: scheduledMinutes))
+    print("components.minute: " + String(describing: components.minute))
+    print("newComponents: " + newComponents.description)
+
+    let content = UNMutableNotificationContent()
+    content.title = "My Anatol"
+    content.body = "Example of rich push notifications!"
+    //content.sound = UNNotificationSound.default()
+
+    if let path = Bundle.main.path(forResource: "logo", ofType: "png") {
+      let url = URL(fileURLWithPath: path)
+
+      do {
+        let attachment = try UNNotificationAttachment(identifier: "logo", url: url, options: nil)
+        content.attachments = [attachment]
+      } catch {
+        print("The attachment was not loaded.")
       }
-
-      pluginResult = CDVPluginResult(
-        status: CDVCommandStatus_OK,
-        messageAs: msg
-      )
     }
 
-    self.commandDelegate!.send(
-      pluginResult,
-      callbackId: command.callbackId
-    )
-  }
-  
-  @objc(testNotification:)
-  func testNotification(command: CDVInvokedUrlCommand) {
-    print("Hello Swift testNotification")
+    let ac1 = setAction(id: "reply", title: "Reply")
+    let ac4 = setAction(id: "destructive", title: "Cancel")
+    let ac5 = setAction(id: "direction", title: "Get Direction")
+
+    let category = UNNotificationCategory(identifier: "customContent", actions: [ac5, ac1, ac4], intentIdentifiers: [], options: .allowInCarPlay)
+    UNUserNotificationCenter.current().setNotificationCategories([category])
+    content.categoryIdentifier = "customContent"
+
+
+    let request = UNNotificationRequest(identifier: "textNotification", content: content, trigger: trigger)
+
+    UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+    UNUserNotificationCenter.current().add(request) {(error) in
+                                                     if let error = error {
+                                                       print("Uh oh! We had an error: \(error)")
+                                                     }
+                                                    }
+
+    //======
+    UNUserNotificationCenter.current().delegate = self
+    //======
 
     var pluginResult = CDVPluginResult(
       status: CDVCommandStatus_ERROR
     )
-
-    let eventDateAsDate = command.arguments[0] as? Date ?? nil
-    let eventDateAsString = command.arguments[1] as? String ?? ""
-    print("Date as date: '%@'", eventDateAsDate ?? "default value")
-    print("Date as string: '%@'", eventDateAsString)
-    
-    //let calendar = Calendar(identifier: .gregorian)
-    //let components = calendar.dateComponents(in: .current, from: eventDate)
-    //print("month: " + components.month + " day: " + components.day + " hour: " + components.hour + " minute: " + components.minute)
 
     pluginResult = CDVPluginResult(
       status: CDVCommandStatus_OK,
-      //messageAs: "passed " + components.minute + " minutes"
       messageAs: "passed "
     )
 
@@ -71,5 +79,17 @@
       pluginResult,
       callbackId: command.callbackId
     )
+  }
+
+  func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+
+    print("response.actionIdentifier" + response.actionIdentifier)
+  }
+
+  private func setAction(id: String, title: String, options: UNNotificationActionOptions = []) -> UNNotificationAction {
+
+    let action = UNNotificationAction(identifier: id, title: title, options: options)
+
+    return action
   }
 }
